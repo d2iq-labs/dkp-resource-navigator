@@ -14,6 +14,9 @@ contextBridge.exposeInMainWorld('electron', {
         func(data);
       ipcRenderer.on('receiveDeployments', subscription);
     },
+    createDeployment(imageName: string) {
+      ipcRenderer.send('createDeployment', imageName);
+    },
     sendMessage(channel: Channels, args: unknown[]) {
       ipcRenderer.send(channel, args);
     },
