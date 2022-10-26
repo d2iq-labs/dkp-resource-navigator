@@ -1,15 +1,20 @@
 import { Channels } from 'main/preload';
+import { Deployment } from 'models/deployments';
 
 declare global {
   interface Window {
     electron: {
       ipcRenderer: {
-        sendMessage(channel: Channels, args: unknown[]): void;
-        on(
-          channel: Channels,
-          func: (...args: unknown[]) => void
+        requestDeployments(): void;
+        receiveDeployments(
+          func: (deployments: Deployment[]) => void,
         ): (() => void) | undefined;
-        once(channel: Channels, func: (...args: unknown[]) => void): void;
+        sendMessage(channel: string, args: unknown[]): void;
+        on(
+          channel: string,
+          func: (...args: unknown[]) => void,
+        ): (() => void) | undefined;
+        once(channel: string, func: (...args: unknown[]) => void): void;
       };
     };
   }
