@@ -11,7 +11,18 @@ export const ResourcesTable = ({ resources }: ResourceTableProps) => {
     {
       id: 'name',
       header: 'Name',
-      render: ({ name, apiVersion }: Resource) => <div onClick={() => window.electron.ipcRenderer.requestSpecificResources(apiVersion, name)} >{name}</div>,
+      render: ({ name, apiVersion }: Resource) => (
+        <div
+          onClick={() =>
+            window.electron.ipcRenderer.requestSpecificResources(
+              apiVersion,
+              name
+            )
+          }
+        >
+          {name}
+        </div>
+      ),
     },
     {
       id: 'apiVersion',

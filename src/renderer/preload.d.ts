@@ -10,7 +10,10 @@ declare global {
         receiveResources(
           func: (resources: Resource[]) => void
         ): (() => void) | undefined;
-        requestSpecificResources(apiVersion: string, resourceName: string): void;
+        requestSpecificResources(
+          apiVersion: string,
+          resourceName: string
+        ): void;
         receiveSpecificResources(
           func: (kubernetesObjects: KubernetesObject[]) => void
         ): (() => void) | undefined;

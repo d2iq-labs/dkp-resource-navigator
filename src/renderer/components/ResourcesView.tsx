@@ -1,23 +1,19 @@
-import {
-  SpacingBox,
-  PrimaryButton,
-  PageHeader,
-  FlexItem,
-  Flex,
-} from '@d2iq/ui-kit';
+import { SpacingBox, PrimaryButton, PageHeader } from '@d2iq/ui-kit';
 import { customAlphabet } from 'nanoid';
+import { KubernetesObject } from '@kubernetes/client-node';
 
 import { Resource } from 'models/resources';
 import { useEffect, useState } from 'react';
 import { ResourcesTable } from './ResourcesTable';
-import { KubernetesObject } from '@kubernetes/client-node';
 import { K8sObjectsTable } from './K8sObjectsTable';
+import CodeEditorInput from './CodeEditorInput';
 
 const nanoid = customAlphabet('1234567890abcdefgh', 10);
 
 export const ResourcesView = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [k8sObjects, setK8sObjects] = useState<KubernetesObject[] | null>();
+  const [editK8sObject, setEditK8sObject] = useState<KubernetesObject | null>();
   const getResources = () => {
     window.electron.ipcRenderer.requestResources();
   };
@@ -27,34 +23,63 @@ export const ResourcesView = () => {
       window.electron.ipcRenderer.receiveResources((data: Resource[]) => {
         setResources(data ?? []);
       });
-      window.electron.ipcRenderer.receiveSpecificResources((data: KubernetesObject[]) => {
-        console.log('resource view')
-        console.log(data)
-        setK8sObjects(data ?? []);
-      });
     };
     fetchResources();
   }, []);
-  const actionButtons = k8sObjects ? [
-    <PrimaryButton type="button" onClick={() => setK8sObjects(null)}>
-      Go back
-    </PrimaryButton>,
-    
-  ]: [<PrimaryButton type="button" onClick={getResources}>
-    Get Resources
-  </PrimaryButton>,
-  ]
-  
+
+  useEffect(() => {
+    window.electron.ipcRenderer.receiveSpecificResources(
+      (data: KubernetesObject[]) => {
+        console.log('resource view');
+        console.log(data);
+        setK8sObjects(data ?? []);
+      }
+    );
+  }, []);
+
+  const onEditObject = (object: KubernetesObject) => {
+    setK8sObjects(null);
+    setEditK8sObject(object);
+  };
+
+  const viewHandler = () => {
+    if (k8sObjects) {
+      return (
+        <K8sObjectsTable k8sObjects={k8sObjects} onEditObject={onEditObject} />
+      );
+    }
+    if (editK8sObject) {
+      return <CodeEditorInput value={editK8sObject}/>;
+    } else return <ResourcesTable resources={resources} />;
+  };
+
+  const buttonHandler = () => {
+    if (k8sObjects) {
+      return [
+        <PrimaryButton type="button" onClick={() => setK8sObjects(null)}>
+          Go Back
+        </PrimaryButton>,
+      ];
+    }
+    if (editK8sObject) {
+      return [
+        <PrimaryButton type="button" onClick={() => setEditK8sObject(null)}>
+          Go Back
+        </PrimaryButton>,
+      ];
+    } else
+      return [
+        <PrimaryButton type="button" onClick={getResources}>
+          Get Resources
+        </PrimaryButton>,
+      ];
+  };
+
   return (
     <>
-      <PageHeader
-        breadcrumbElements={['Resources']}
-        actions={actionButtons}
-      />
+      <PageHeader breadcrumbElements={['Resources']} actions={buttonHandler()} />
       <div>
-        <SpacingBox>
-          { k8sObjects ?   <K8sObjectsTable k8sObjects={k8sObjects} /> : <ResourcesTable resources={resources} /> }
-        </SpacingBox>
+        <SpacingBox>{viewHandler()}</SpacingBox>
       </div>
     </>
   );
