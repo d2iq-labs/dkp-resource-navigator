@@ -6,11 +6,17 @@ type ResourceTableProps = {
 };
 
 export const ResourcesTable = ({ resources }: ResourceTableProps) => {
+  // const [resourceObjects, setResourceObjects] = useState<KubernetesObject[]>([])
   const columns = [
     {
       id: 'name',
       header: 'Name',
-      render: ({ name }: Resource) => <div onClick={() => window.electron.ipcRenderer.requestSpecificResources()} >{name}</div>,
+      render: ({ name, apiVersion }: Resource) => <div onClick={() => window.electron.ipcRenderer.requestSpecificResources(apiVersion, name)} >{name}</div>,
+    },
+    {
+      id: 'apiVersion',
+      header: 'ApiVersion',
+      render: ({ apiVersion }: Resource) => <>{apiVersion}</>,
     },
     {
       id: 'kind',

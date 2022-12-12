@@ -42,14 +42,19 @@ function getClient(KUBECONFIG = process.env.KUBECONFIG): AxiosInstance {
 
 const getExistingDeployments = async (
     namespace: string,
+    apiVersion: string, 
+    resourceName: string
 ) => {
     try {
+        const url = `/apis/${apiVersion}/namespaces/${namespace}/${resourceName}/`
+        console.log(url)
         const items = (
-        await client.get(
-            `/apis/apps/v1/namespaces/${namespace}/deployments/`
-        )
+            await client.get(
+                `/apis/${apiVersion}/namespaces/${namespace}/${resourceName}/`
+            )
         ).data?.items;
         console.log(items)
+        return items;
 
     } catch (e) {
         console.log(
@@ -58,8 +63,8 @@ const getExistingDeployments = async (
     }
 };
 
-ipcMain.on('requestSpecificResources', async (event) => {
+ipcMain.on('requestSpecificResources', async (event, apiVersion: string, resourceName: string) => {
     console.log("asdsd")
-    const resources = await getExistingDeployments("default");
-    // event.sender.send('receiveResources', resources);
+    const resources = await getExistingDeployments("default", apiVersion, resourceName);
+    event.sender.send('receiveSpecificResources', resources);
 });

@@ -1,3 +1,4 @@
+import { KubernetesObject } from '@kubernetes/client-node';
 import { Deployment } from 'models/deployments';
 import { Resource } from 'models/resources';
 
@@ -9,7 +10,10 @@ declare global {
         receiveResources(
           func: (resources: Resource[]) => void
         ): (() => void) | undefined;
-        requestSpecificResources(): void;
+        requestSpecificResources(apiVersion: string, resourceName: string): void;
+        receiveSpecificResources(
+          func: (kubernetesObjects: KubernetesObject[]) => void
+        ): (() => void) | undefined;
         requestDeployments(): void;
         receiveDeployments(
           func: (deployments: Deployment[]) => void

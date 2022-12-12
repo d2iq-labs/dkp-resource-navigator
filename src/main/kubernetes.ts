@@ -47,12 +47,13 @@ const getDeployments = async () => {
 };
 
 const getResources = async () => {
-  const response = await k8sAppsClient.getAPIResources();
+  const response = await k8sAppsClient.getAPIResources(); console.log(response.body.resources)
   const resources: V1APIResource[] = response.body.resources.map(
     (x: V1APIResource) => {
       return {
         name: x.name,
         kind: x.kind,
+        apiVersion: response.body.groupVersion,
         namespaced: x.namespaced,
         singularName: x.singularName,
         verbs: x.verbs,

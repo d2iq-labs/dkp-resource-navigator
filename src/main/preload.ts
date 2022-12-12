@@ -1,3 +1,4 @@
+import { KubernetesObject } from '@kubernetes/client-node';
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { Deployment } from 'models/deployments';
 import { Resource } from 'models/resources';
@@ -9,13 +10,18 @@ contextBridge.exposeInMainWorld('electron', {
     requestResources() {
       ipcRenderer.send('requestResources');
     },
-    requestSpecificResources() {
-      ipcRenderer.send('requestSpecificResources');
-    },
     receiveResources(func: (data: Resource[]) => void) {
       const subscription = (_event: IpcRendererEvent, data: Resource[]) =>
         func(data);
       ipcRenderer.on('receiveResources', subscription);
+    },
+    requestSpecificResources(apiVersion: string, resourceName: string) {
+      ipcRenderer.send('requestSpecificResources', apiVersion, resourceName);
+    },
+    receiveSpecificResources(func: (data: KubernetesObject[]) => void) {
+      const subscription = (_event: IpcRendererEvent, data: KubernetesObject[]) =>
+        func(data);
+      ipcRenderer.on('receiveSpecificResources', subscription);
     },
     requestDeployments() {
       ipcRenderer.send('requestDeployments');
