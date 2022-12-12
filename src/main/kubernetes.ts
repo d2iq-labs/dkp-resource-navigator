@@ -48,7 +48,12 @@ const getDeployments = async () => {
 
 const getResources = async () => {
   const response = await k8sAppsClient.getAPIResources();
-  const resources: V1APIResource[] = response.body.resources.map(
+  const resources: V1APIResource[] = response.body.resources.filter(
+      (x: V1APIResource) => {
+        return x.name.indexOf("/") == -1;
+      }
+    )
+    .map(
     (x: V1APIResource) => {
       return {
         name: x.name,

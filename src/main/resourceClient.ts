@@ -48,9 +48,7 @@ const getExistingDeployments = async (
     const url = `/apis/${apiVersion}/namespaces/${namespace}/${resourceName}/`;
     console.log(url);
     const items = (
-      await client.get(
-        `/apis/${apiVersion}/namespaces/${namespace}/${resourceName}/`
-      )
+      await client.get(url)
     ).data?.items;
     console.log(items);
     return items;

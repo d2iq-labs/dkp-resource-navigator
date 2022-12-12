@@ -19,12 +19,17 @@ export const K8sObjectsTable = ({
       render: ({ metadata }: KubernetesObject) => <div>{metadata?.name}</div>,
     },
     {
+      id: 'namespace',
+      header: 'Namespace',
+      render: ({ metadata }: KubernetesObject) => <>{metadata?.namespace}</>,
+    },
+    {
       id: 'edit',
       header: 'Edit',
       render: (object: KubernetesObject) => (
         <PrimaryButton onClick={() => onEditObject(object)}>Edit</PrimaryButton>
       ),
-    },
+    }
   ];
 
   return (
