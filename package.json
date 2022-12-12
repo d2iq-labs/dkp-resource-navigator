@@ -116,7 +116,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
-    "@dcos/ui-kit": "11.2.2"
+    "@d2iq/ui-kit": "12.0.1"
   },
   "devDependencies": {
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",

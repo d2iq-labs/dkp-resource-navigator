@@ -1,4 +1,4 @@
-import { PrimaryButton, Table } from '@dcos/ui-kit';
+import { PrimaryButton, Table } from '@d2iq/ui-kit';
 import { Deployment } from 'models/deployments';
 
 type DeploymentTableProps = {

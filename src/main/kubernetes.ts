@@ -6,6 +6,7 @@ import {
   AppsV1Api,
   PortForward,
   CoreV1Api,
+  V1APIResource,
 } from '@kubernetes/client-node';
 import { Deployment, Status } from '../models/deployments';
 
@@ -31,7 +32,7 @@ const getDeploymentStatus = (deployment: V1Deployment): Status => {
 };
 
 const getDeployments = async () => {
-  const response = await k8sAppsClient.listNamespacedDeployment('kommander');
+  const response = await k8sAppsClient.listNamespacedDeployment('default');
   const deployments: Deployment[] = response.body.items.map(
     (x: V1Deployment) => {
       return {
@@ -40,10 +41,31 @@ const getDeployments = async () => {
         replicas: x.status?.replicas ?? 0,
         status: getDeploymentStatus(x),
       };
-    },
+    }
   );
   return deployments;
 };
+
+const getResources = async () => {
+  const response = await k8sAppsClient.getAPIResources();
+  const resources: V1APIResource[] = response.body.resources.map(
+    (x: V1APIResource) => {
+      return {
+        name: x.name,
+        kind: x.kind,
+        namespaced: x.namespaced,
+        singularName: x.singularName,
+        verbs: x.verbs,
+      };
+    }
+  );
+  return resources;
+};
+
+ipcMain.on('requestResources', async (event) => {
+  const resources = await getResources();
+  event.sender.send('receiveResources', resources);
+});
 
 ipcMain.on('requestDeployments', async (event) => {
   const deployments = await getDeployments();
@@ -90,7 +112,7 @@ ipcMain.on(
     } catch (error) {
       console.error(error);
     }
-  },
+  }
 );
 
 ipcMain.on('portForward', async (_, deploymentName: string) => {
@@ -126,7 +148,7 @@ ipcMain.on('portForward', async (_, deploymentName: string) => {
         [3003],
         socket,
         null,
-        socket,
+        socket
       );
     });
 

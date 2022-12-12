@@ -4,19 +4,19 @@ import {
   PageHeader,
   FlexItem,
   Flex,
-} from '@dcos/ui-kit';
+} from '@d2iq/ui-kit';
 import { customAlphabet } from 'nanoid';
 
 import { Deployment } from 'models/deployments';
 import { useEffect, useState } from 'react';
-import { DeploymentsTable } from './DeploymentTable';
+import { DeploymentsTable } from './DeploymentsTable';
 
 const nanoid = customAlphabet('1234567890abcdefgh', 10);
 
 export const DeploymentsView = () => {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const getDeployments = () => {
-    window.electron.ipcRenderer();
+    window.electron.ipcRenderer.requestDeployments();
   };
 
   useEffect(() => {
@@ -47,7 +47,10 @@ export const DeploymentsView = () => {
         <FlexItem flex="shrink">
           <PrimaryButton
             onClick={() =>
-              window.electron.ipcRenderer.createDeployment('nginx', `nginx-${nanoid(6)}`)
+              window.electron.ipcRenderer.createDeployment(
+                'nginx',
+                `nginx-${nanoid(6)}`
+              )
             }
           >
             Create NGINX Deployment
@@ -56,7 +59,10 @@ export const DeploymentsView = () => {
         <FlexItem flex="shrink">
           <PrimaryButton
             onClick={() =>
-              window.electron.ipcRenderer.createDeployment('busybox', `busybox-${nanoid(6)}`)
+              window.electron.ipcRenderer.createDeployment(
+                'busybox',
+                `busybox-${nanoid(6)}`
+              )
             }
           >
             Create BusyBox Deployment

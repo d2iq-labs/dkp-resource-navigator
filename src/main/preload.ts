@@ -1,10 +1,19 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { Deployment } from 'models/deployments';
+import { Resource } from 'models/resources';
 
 export type Channels = 'ipc-example';
 
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {
+    requestResources() {
+      ipcRenderer.send('requestResources');
+    },
+    receiveResources(func: (data: Resource[]) => void) {
+      const subscription = (_event: IpcRendererEvent, data: Resource[]) =>
+        func(data);
+      ipcRenderer.on('receiveResources', subscription);
+    },
     requestDeployments() {
       ipcRenderer.send('requestDeployments');
     },
