@@ -29,4 +29,6 @@ https://github.com/electron-react-boilerplate/electron-react-boilerplate
 
 ### Manually add a Deployment
 
+```bash
 kubectl create deployment hello-node --image=registry.k8s.io/echoserver:1.4
+```
