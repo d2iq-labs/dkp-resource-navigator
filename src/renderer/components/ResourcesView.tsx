@@ -1,3 +1,4 @@
+import * as yaml from 'js-yaml';
 import { SpacingBox, PrimaryButton, PageHeader } from '@d2iq/ui-kit';
 import { customAlphabet } from 'nanoid';
 import { KubernetesObject } from '@kubernetes/client-node';
@@ -38,6 +39,7 @@ export const ResourcesView = () => {
   }, []);
 
   const onEditObject = (object: KubernetesObject) => {
+    console.log("onEditObject");
     setK8sObjects(null);
     setEditK8sObject(object);
   };
@@ -49,7 +51,14 @@ export const ResourcesView = () => {
       );
     }
     if (editK8sObject) {
-      return <CodeEditorInput value={editK8sObject}/>;
+      console.log("editK8sObject")
+      // editK8sObject
+      editK8sObject.apiVersion
+      let k8sObjectYaml: string = yaml.dump(editK8sObject, {}
+      );
+      return <CodeEditorInput
+                value={k8sObjectYaml}
+            />;
     } else return <ResourcesTable resources={resources} />;
   };
 

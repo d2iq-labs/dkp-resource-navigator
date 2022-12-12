@@ -13,8 +13,8 @@ import { Deployment, Status } from '../models/deployments';
 const kc = new KubeConfig();
 kc.loadFromDefault();
 
-const k8sAppsClient = kc.makeApiClient(AppsV1Api);
-const coreClient = kc.makeApiClient(CoreV1Api);
+const appsV1Client = kc.makeApiClient(AppsV1Api);
+const coreV1Client = kc.makeApiClient(CoreV1Api);
 
 const getDeploymentStatus = (deployment: V1Deployment): Status => {
   const { status } = deployment;
@@ -32,7 +32,7 @@ const getDeploymentStatus = (deployment: V1Deployment): Status => {
 };
 
 const getDeployments = async () => {
-  const response = await k8sAppsClient.listNamespacedDeployment('default');
+  const response = await appsV1Client.listNamespacedDeployment('default');
   const deployments: Deployment[] = response.body.items.map(
     (x: V1Deployment) => {
       return {
@@ -47,7 +47,7 @@ const getDeployments = async () => {
 };
 
 const getResources = async () => {
-  const response = await k8sAppsClient.getAPIResources();
+  const response = await appsV1Client.getAPIResources();
   const resources: V1APIResource[] = response.body.resources.filter(
       (x: V1APIResource) => {
         return x.name.indexOf("/") == -1;
@@ -67,6 +67,10 @@ const getResources = async () => {
   );
   return resources;
 };
+
+const getNamespaces = async () => {
+  const response = await coreV1Client.listNamespace();
+}
 
 ipcMain.on('requestResources', async (event) => {
   const resources = await getResources();
@@ -112,7 +116,7 @@ ipcMain.on(
       },
     };
     try {
-      await k8sAppsClient.createNamespacedDeployment('default', newDeployment);
+      await appsV1Client.createNamespacedDeployment('default', newDeployment);
       const deployments = await getDeployments();
       event.sender.send('receiveDeployments', deployments);
     } catch (error) {
@@ -123,7 +127,7 @@ ipcMain.on(
 
 ipcMain.on('portForward', async (_, deploymentName: string) => {
   try {
-    await coreClient.createNamespacedService('default', {
+    await coreV1Client.createNamespacedService('default', {
       metadata: {
         name: `${deploymentName}-service`,
       },
