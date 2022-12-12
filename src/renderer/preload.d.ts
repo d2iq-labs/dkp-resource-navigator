@@ -9,6 +9,7 @@ declare global {
         receiveResources(
           func: (resources: Resource[]) => void
         ): (() => void) | undefined;
+        requestSpecificResources(): void;
         requestDeployments(): void;
         receiveDeployments(
           func: (deployments: Deployment[]) => void

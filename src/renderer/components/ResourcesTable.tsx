@@ -10,7 +10,7 @@ export const ResourcesTable = ({ resources }: ResourceTableProps) => {
     {
       id: 'name',
       header: 'Name',
-      render: ({ name }: Resource) => <>{name}</>,
+      render: ({ name }: Resource) => <div onClick={() => window.electron.ipcRenderer.requestSpecificResources()} >{name}</div>,
     },
     {
       id: 'kind',

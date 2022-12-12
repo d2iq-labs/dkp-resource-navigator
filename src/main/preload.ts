@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld('electron', {
     requestResources() {
       ipcRenderer.send('requestResources');
     },
+    requestSpecificResources() {
+      ipcRenderer.send('requestSpecificResources');
+    },
     receiveResources(func: (data: Resource[]) => void) {
       const subscription = (_event: IpcRendererEvent, data: Resource[]) =>
         func(data);
