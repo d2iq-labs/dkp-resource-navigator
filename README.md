@@ -1,3 +1,8 @@
+### Prerequisites
+
+Node version: `>=14.x`
+NPM version: `>=7.x`
+
 ### Instructions
 
 `npm install`
@@ -11,6 +16,12 @@ Create a Cluster:
 `kind create cluster`
 
 `npm run start`
+
+### Get the kubeconfig for the KIND cluster
+
+`kind get kubeconfig > kind.conf`
+
+`export KUBECONFIG=kind.conf`
 
 ### Template
 
