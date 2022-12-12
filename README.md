@@ -1,7 +1,7 @@
 ### Prerequisites
 
-Node version: `>=14.x`
-NPM version: `>=7.x`
+Node version: `>=16.16.x`
+NPM version: `>=8.15.0`
 
 ### Instructions
 
