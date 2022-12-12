@@ -5,14 +5,18 @@ import {
   FlexItem,
   Flex,
 } from '@dcos/ui-kit';
+import { customAlphabet } from 'nanoid';
+
 import { Deployment } from 'models/deployments';
 import { useEffect, useState } from 'react';
 import { DeploymentsTable } from './DeploymentTable';
 
+const nanoid = customAlphabet('1234567890abcdefgh', 10);
+
 export const DeploymentsView = () => {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const getDeployments = () => {
-    window.electron.ipcRenderer.requestDeployments();
+    window.electron.ipcRenderer();
   };
 
   useEffect(() => {
@@ -43,19 +47,31 @@ export const DeploymentsView = () => {
         <FlexItem flex="shrink">
           <PrimaryButton
             onClick={() =>
-              window.electron.ipcRenderer.createDeployment('nginx')
+              window.electron.ipcRenderer.createDeployment('nginx', `nginx-${nanoid(6)}`)
             }
           >
             Create NGINX Deployment
           </PrimaryButton>
         </FlexItem>
-        <FlexItem>
+        <FlexItem flex="shrink">
           <PrimaryButton
             onClick={() =>
-              window.electron.ipcRenderer.createDeployment('busybox')
+              window.electron.ipcRenderer.createDeployment('busybox', `busybox-${nanoid(6)}`)
             }
           >
             Create BusyBox Deployment
+          </PrimaryButton>
+        </FlexItem>
+        <FlexItem flex="shrink">
+          <PrimaryButton
+            onClick={() =>
+              window.electron.ipcRenderer.createDeployment(
+                'clintomed/hello-kubernetes:0.1.0',
+                `hello-kubernetes-${nanoid(6)}`
+              )
+            }
+          >
+            Create hello world Deployment
           </PrimaryButton>
         </FlexItem>
       </Flex>

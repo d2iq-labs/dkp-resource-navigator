@@ -1,23 +1,28 @@
 import { ipcMain } from 'electron';
-import { KubeConfig, V1Deployment, AppsV1Api } from '@kubernetes/client-node';
-import { customAlphabet } from 'nanoid'
+import * as net from 'net';
+import {
+  KubeConfig,
+  V1Deployment,
+  AppsV1Api,
+  PortForward,
+  CoreV1Api,
+} from '@kubernetes/client-node';
 import { Deployment, Status } from '../models/deployments';
 
 const kc = new KubeConfig();
 kc.loadFromDefault();
 
 const k8sAppsClient = kc.makeApiClient(AppsV1Api);
-const nanoid = customAlphabet('1234567890abcdefgh', 10);
+const coreClient = kc.makeApiClient(CoreV1Api);
+
 const getDeploymentStatus = (deployment: V1Deployment): Status => {
   const { status } = deployment;
-  if (!status) {
+  if (!status || status.availableReplicas === undefined) {
     return Status.Unknown;
   }
-
   if (status.unavailableReplicas) {
     return Status.Unavailable;
   }
-
   if (status.availableReplicas === status.replicas) {
     return Status.Available;
   }
@@ -26,7 +31,7 @@ const getDeploymentStatus = (deployment: V1Deployment): Status => {
 };
 
 const getDeployments = async () => {
-  const response = await k8sAppsClient.listNamespacedDeployment('default');
+  const response = await k8sAppsClient.listNamespacedDeployment('kommander');
   const deployments: Deployment[] = response.body.items.map(
     (x: V1Deployment) => {
       return {
@@ -45,40 +50,87 @@ ipcMain.on('requestDeployments', async (event) => {
   event.sender.send('receiveDeployments', deployments);
 });
 
-ipcMain.on('createDeployment', async (event, imageName: string) => {
-  const name = `${imageName}-${nanoid(6)}`;
-  const newDeployment = {
-    metadata: {
-      name,
-    },
-    spec: {
-      selector: {
-        matchLabels: {
-          app: imageName,
-        },
+ipcMain.on(
+  'createDeployment',
+  async (event, imageName: string, deploymentName: string) => {
+    const newDeployment = {
+      metadata: {
+        name: deploymentName,
       },
-      replicas: 3,
-      template: {
-        metadata: {
-          labels: {
-            app: imageName,
+      spec: {
+        selector: {
+          matchLabels: {
+            app: deploymentName,
+            env: 'dev',
           },
         },
-        spec: {
-          containers: [
-            {
-              name,
-              image: imageName,
+        replicas: 1,
+        template: {
+          metadata: {
+            labels: {
+              app: deploymentName,
+              env: 'dev',
             },
-          ],
+          },
+          spec: {
+            containers: [
+              {
+                name: deploymentName,
+                image: imageName,
+              },
+            ],
+          },
         },
       },
-    },
-  };
+    };
+    try {
+      await k8sAppsClient.createNamespacedDeployment('default', newDeployment);
+      const deployments = await getDeployments();
+      event.sender.send('receiveDeployments', deployments);
+    } catch (error) {
+      console.error(error);
+    }
+  },
+);
+
+ipcMain.on('portForward', async (_, deploymentName: string) => {
   try {
-    await k8sAppsClient.createNamespacedDeployment('default', newDeployment);
-    const deployments = await getDeployments();
-    event.sender.send('receiveDeployments', deployments);
+    await coreClient.createNamespacedService('default', {
+      metadata: {
+        name: `${deploymentName}-service`,
+      },
+      spec: {
+        type: 'LoadBalancer',
+        selector: {
+          app: deploymentName,
+        },
+        ports: [
+          {
+            targetPort: 3000,
+            port: 3000,
+            nodePort: 30008,
+          },
+        ],
+      },
+    });
+
+    const forward = new PortForward(kc);
+
+    // This simple server just forwards traffic from itself to a service running in kubernetes
+    // -> localhost:8080 -> port-forward-tunnel -> kubernetes-pod
+    // This is basically equivalent to 'kubectl port-forward ...' but in TypeScript.
+    const server = net.createServer((socket) => {
+      forward.portForward(
+        'default',
+        `${deploymentName}-service`,
+        [3003],
+        socket,
+        null,
+        socket,
+      );
+    });
+
+    server.listen(3003, '127.0.0.1');
   } catch (error) {
     console.error(error);
   }

@@ -9,7 +9,8 @@ declare global {
         receiveDeployments(
           func: (deployments: Deployment[]) => void,
         ): (() => void) | undefined;
-        createDeployment(imageName: string): void;
+        createDeployment(imageName: string, deploymentName: string): void;
+        portForward(deploymentName: string): void;
         sendMessage(channel: string, args: unknown[]): void;
         on(
           channel: string,

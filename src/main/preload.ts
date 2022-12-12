@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { ApiResource } from 'models/apiResource';
 import { Deployment } from 'models/deployments';
 
 export type Channels = 'ipc-example';
@@ -14,8 +13,11 @@ contextBridge.exposeInMainWorld('electron', {
         func(data);
       ipcRenderer.on('receiveDeployments', subscription);
     },
-    createDeployment(imageName: string) {
-      ipcRenderer.send('createDeployment', imageName);
+    createDeployment(imageName: string, deploymentName: string) {
+      ipcRenderer.send('createDeployment', imageName, deploymentName);
+    },
+    portForward(deploymentName: string) {
+      ipcRenderer.send('portForward', deploymentName);
     },
     sendMessage(channel: Channels, args: unknown[]) {
       ipcRenderer.send(channel, args);
