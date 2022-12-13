@@ -1,17 +1,17 @@
-import { PrimaryButton, Table } from '@d2iq/ui-kit';
+import { PageHeader, PrimaryButton, Table } from '@d2iq/ui-kit';
 import { KubernetesObject } from '@kubernetes/client-node';
-// import { Resource as KubernetesObject } from 'models/resources';
 
 type K8sObjectTableProps = {
   k8sObjects: KubernetesObject[];
-  onEditObject: (object: KubernetesObject) => void;
+  onEditObject: (object: KubernetesObject | null) => void;
+  onCancelViewObjects: () => void;
 };
 
 export const K8sObjectsTable = ({
   k8sObjects,
   onEditObject,
+  onCancelViewObjects,
 }: K8sObjectTableProps) => {
-  // const [resourceObjects, setResourceObjects] = useState<KubernetesObject[]>([])
   const columns = [
     {
       id: 'name',
@@ -29,15 +29,25 @@ export const K8sObjectsTable = ({
       render: (object: KubernetesObject) => (
         <PrimaryButton onClick={() => onEditObject(object)}>Edit</PrimaryButton>
       ),
-    }
+    },
   ];
 
   return (
-    <Table
-      data={k8sObjects}
-      columns={columns}
-      toId={(el: KubernetesObject) => el.metadata?.name ?? ''}
-      initialSorter={{ by: 'name', order: 'asc' }}
-    />
+    <>
+      <PageHeader
+        breadcrumbElements={['Objects']}
+        actions={[
+          <PrimaryButton type="button" onClick={onCancelViewObjects}>
+            Go Back
+          </PrimaryButton>,
+        ]}
+      />
+      <Table
+        data={k8sObjects}
+        columns={columns}
+        toId={(el: KubernetesObject) => el.metadata?.name ?? ''}
+        initialSorter={{ by: 'name', order: 'asc' }}
+      />
+    </>
   );
 };

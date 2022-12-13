@@ -1,4 +1,4 @@
-import { Table } from '@d2iq/ui-kit';
+import { PageHeader, Table } from '@d2iq/ui-kit';
 import { Resource } from 'models/resources';
 
 type ResourceTableProps = {
@@ -6,7 +6,6 @@ type ResourceTableProps = {
 };
 
 export const ResourcesTable = ({ resources }: ResourceTableProps) => {
-  // const [resourceObjects, setResourceObjects] = useState<KubernetesObject[]>([])
   const columns = [
     {
       id: 'name',
@@ -42,11 +41,16 @@ export const ResourcesTable = ({ resources }: ResourceTableProps) => {
   ];
 
   return (
-    <Table
-      data={resources}
-      columns={columns}
-      toId={(el: Resource) => el.name ?? ''}
-      initialSorter={{ by: 'name', order: 'asc' }}
-    />
+    <>
+      <PageHeader
+        breadcrumbElements={['Resources']}
+      />
+      <Table
+        data={resources}
+        columns={columns}
+        toId={(el: Resource) => el.name ?? ''}
+        initialSorter={{ by: 'name', order: 'asc' }}
+      />
+    </>
   );
 };
