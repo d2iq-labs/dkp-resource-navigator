@@ -1,9 +1,15 @@
-import { PageHeader, Table } from '@d2iq/ui-kit';
+import { designTokens, PageHeader, Table } from '@d2iq/ui-kit';
+import { css } from '@emotion/css';
 import { Resource } from 'models/resources';
 
 type ResourceTableProps = {
   resources: Resource[];
 };
+
+const LinkStyle = css`
+  cursor: pointer;
+  color: ${designTokens.purple};
+`;
 
 export const ResourcesTable = ({ resources }: ResourceTableProps) => {
   const columns = [
@@ -12,6 +18,7 @@ export const ResourcesTable = ({ resources }: ResourceTableProps) => {
       header: 'Name',
       render: ({ name, apiVersion }: Resource) => (
         <div
+          className={LinkStyle}
           onClick={() =>
             window.electron.ipcRenderer.requestSpecificResources(
               apiVersion,
@@ -42,9 +49,7 @@ export const ResourcesTable = ({ resources }: ResourceTableProps) => {
 
   return (
     <>
-      <PageHeader
-        breadcrumbElements={['Resources']}
-      />
+      <PageHeader breadcrumbElements={['Resources']} />
       <Table
         data={resources}
         columns={columns}

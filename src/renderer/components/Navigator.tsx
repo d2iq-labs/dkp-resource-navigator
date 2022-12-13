@@ -55,6 +55,7 @@ export const Navigator = () => {
           k8sObject={editK8sObject}
           k8sObjectYaml={k8sObjectYaml}
           onCancelEditObject={onCancelEditObject}
+          onCancelViewObjects={onCancelViewObjects}
         />
       );
     }
