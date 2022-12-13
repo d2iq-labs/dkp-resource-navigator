@@ -68,9 +68,7 @@ const getResources = async () => {
   return resources;
 };
 
-const getNamespaces = async () => {
-  const response = await coreV1Client.listNamespace();
-}
+
 
 ipcMain.on('requestResources', async (event) => {
   const resources = await getResources();

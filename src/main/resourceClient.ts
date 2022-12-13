@@ -6,6 +6,18 @@ import { ipcMain } from 'electron';
 // @ts-ignore-next-line-no-types
 import * as base64 from 'base-64';
 
+// TODO: clean this up
+import {
+  KubeConfig,
+  CoreV1Api,
+  KubernetesObject,
+  V1Namespace,
+} from '@kubernetes/client-node';
+
+const kc = new KubeConfig();
+kc.loadFromDefault();
+const coreV1Client = kc.makeApiClient(CoreV1Api);
+
 function getClient(KUBECONFIG = process.env.KUBECONFIG): AxiosInstance {
   if (!KUBECONFIG) {
     throw Error('please give me a KUBECONFIG path to work with.');
@@ -47,7 +59,8 @@ const getSpecificResources = async (
   try {
     const url = `/apis/${apiVersion}/namespaces/${namespace}/${resourceName}/`;
     const items = (await client.get(url)).data?.items;
-
+    // console.log("getSpecificResources")
+    // console.log(url)
     // @ts-ignore
     items.forEach((item) => {
       item.apiVersion = apiVersion;
@@ -81,12 +94,27 @@ const editSpecificResource = async (
 ipcMain.on(
   'requestSpecificResources',
   async (event, apiVersion: string, resourceName: string) => {
-    const resources = await getSpecificResources(
-      'default',
-      apiVersion,
-      resourceName
+    const namespaces = await coreV1Client.listNamespace();
+    console.log("request spec resources NS")
+    // TODO: clean the crap up
+    let promises: Promise<any>[] = [];
+    promises = namespaces.body.items.map(
+      async (v1namespace: V1Namespace) => {
+        console.log(v1namespace.metadata?.name)
+        const resourcesInNS = await getSpecificResources(
+          v1namespace.metadata?.name!,
+          apiVersion,
+          resourceName
+        );
+        return resourcesInNS;
+      }
     );
-    event.sender.send('receiveSpecificResources', resources);
+    console.log(promises);
+    Promise.all(promises).then((items) => {
+        event.sender.send('receiveSpecificResources', items.flat(2));
+      }
+    );
+
   }
 );
 
@@ -100,6 +128,7 @@ ipcMain.on(
     specificName: string,
     updatedObject: string
   ) => {
+
     const patchRequest = await editSpecificResource(
       namespace,
       apiVersion,
@@ -110,7 +139,7 @@ ipcMain.on(
     event.sender.send('receiveEditSpecificResources', patchRequest);
 
     const resources = await getSpecificResources(
-      'default',
+      namespace,
       apiVersion,
       resourceName
     );
