@@ -4,7 +4,7 @@ import { KubernetesObject } from '@kubernetes/client-node';
 type K8sObjectTableProps = {
   k8sObjects: KubernetesObject[];
   onEditObject: (object: KubernetesObject | null) => void;
-  onCancelViewObjects: () => void;
+  onCancelViewObjects: (object: null) => void;
 };
 
 export const K8sObjectsTable = ({
@@ -35,9 +35,15 @@ export const K8sObjectsTable = ({
   return (
     <>
       <PageHeader
-        breadcrumbElements={['Objects']}
+        breadcrumbElements={[
+          <div key="resources" onClick={() => onCancelViewObjects(null)}>Resources</div>,
+          k8sObjects[0].kind,
+        ]}
         actions={[
-          <PrimaryButton type="button" onClick={onCancelViewObjects}>
+          <PrimaryButton
+            type="button"
+            onClick={() => onCancelViewObjects(null)}
+          >
             Go Back
           </PrimaryButton>,
         ]}

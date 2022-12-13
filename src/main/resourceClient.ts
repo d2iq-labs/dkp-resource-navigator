@@ -39,37 +39,77 @@ function getClient(KUBECONFIG = process.env.KUBECONFIG): AxiosInstance {
 }
 export const client = getClient();
 
-const getExistingDeployments = async (
+const getSpecificResources = async (
   namespace: string,
   apiVersion: string,
   resourceName: string
 ) => {
   try {
     const url = `/apis/${apiVersion}/namespaces/${namespace}/${resourceName}/`;
-    console.log(url);
-    const items = (
-      await client.get(url)
-    ).data?.items;
+    const items = (await client.get(url)).data?.items;
 
     // @ts-ignore
-    items.forEach(item => {
-        item.apiVersion = apiVersion;
-        item.kind = resourceName;
+    items.forEach((item) => {
+      item.apiVersion = apiVersion;
+      item.kind = resourceName;
     });
-    console.log(items);
     return items;
   } catch (e) {
-    console.log(
-      `Unable to check for existing helmreleases with id . ${e.message}`
-    );
+    console.log(`Unable to get ${resourceName}. ${e.message}`);
+  }
+};
+
+const editSpecificResource = async (
+  namespace: string,
+  apiVersion: string,
+  resourceName: string,
+  specificName: string,
+  updatedObject: string
+) => {
+  try {
+    const url = `/apis/${apiVersion}/namespaces/${namespace}/${resourceName}/${specificName}`;
+    const objYaml = yaml.load(updatedObject) as any;
+    console.log('objYaml', objYaml);
+    client.patch(url, { spec: objYaml.spec, metadata: objYaml.metadata });
+    return 'Success';
+  } catch (e) {
+    console.log(`Unable to patch ${specificName}. ${e.message}`);
+    console.log(e);
   }
 };
 
 ipcMain.on(
   'requestSpecificResources',
   async (event, apiVersion: string, resourceName: string) => {
-    console.log('asdsd');
-    const resources = await getExistingDeployments(
+    const resources = await getSpecificResources(
+      'default',
+      apiVersion,
+      resourceName
+    );
+    event.sender.send('receiveSpecificResources', resources);
+  }
+);
+
+ipcMain.on(
+  'requestEditSpecificResources',
+  async (
+    event,
+    namespace: string,
+    apiVersion: string,
+    resourceName: string,
+    specificName: string,
+    updatedObject: string
+  ) => {
+    const patchRequest = await editSpecificResource(
+      namespace,
+      apiVersion,
+      resourceName,
+      specificName,
+      updatedObject
+    );
+    event.sender.send('receiveEditSpecificResources', patchRequest);
+
+    const resources = await getSpecificResources(
       'default',
       apiVersion,
       resourceName

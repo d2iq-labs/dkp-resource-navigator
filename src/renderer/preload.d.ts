@@ -17,6 +17,16 @@ declare global {
         receiveSpecificResources(
           func: (kubernetesObjects: KubernetesObject[]) => void
         ): (() => void) | undefined;
+        requestEditSpecificResources(
+          namespace: string,
+          apiVersion: string,
+          resourceName: string,
+          specificName: string,
+          updatedObject: string
+        ): void;
+        receiveEditSpecificResources(
+          func: (data: string) => void
+        ): (() => void) | undefined;
         requestDeployments(): void;
         receiveDeployments(
           func: (deployments: Deployment[]) => void

@@ -7,11 +7,13 @@ import { SystemIcons } from '@d2iq/ui-kit/dist/packages/icons/dist/system-icons-
 import AceEditor, { IAceEditorProps } from 'react-ace';
 import nextId from 'react-id-generator';
 import { css } from '@emotion/css';
+import * as yaml from 'js-yaml';
 
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-pastel_on_dark';
 import 'ace-builds/src-noconflict/theme-dawn';
 import 'ace-builds/src-min-noconflict/ext-language_tools';
+import { KubernetesObject } from '@kubernetes/client-node';
 
 const hidden = css`
   display: none;
@@ -86,6 +88,7 @@ const CodeEditorInput = ({
   uploadButtonContent,
   ...aceProps
 }: CodeEditorInputProps) => {
+  const [yamlValue, setYamlValue] = React.useState<string | undefined>(value);
   /**
    * Defines ACE editor mode as well as file types for upload/download
    */
@@ -101,50 +104,22 @@ const CodeEditorInput = ({
   const parentDataCy = `codeeditor codeeditor.${inputAppearance}`;
   const textareaDataCy = `codeeditor-extra codeeditor-extra.${inputAppearance}`;
 
-  const fileInput = React.useRef<HTMLInputElement>(null);
-
   const handleApplyClick = () => {
-    console.log("apply click");
-    console.log(value);
-    // TODO: convert value string to K8sObject and patch
-
-  };
-
-  const handleFileUpload = (fileEvent: React.FormEvent<HTMLInputElement>) => {
-    const file = fileEvent.currentTarget.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (file.size > 1024 * 1024 && onUploadError) {
-      const msg = `The file that you tried to upload is too large or uses an invalid format. Upload a yaml-formatted kubeconfig less than 1MB in size.`;
-      return onUploadError(msg);
-    }
-
-    const fileReader = new FileReader();
-    fileReader.onload = () => {
-      if (onChange) {
-        onChange(fileReader.result as string);
+    console.log('apply click');
+    let jsonObject: KubernetesObject;
+    console.log('value', yamlValue);
+    if (yamlValue) {
+      jsonObject = yaml.load(yamlValue) as KubernetesObject;
+      console.log(jsonObject);
+      if (jsonObject) {
+        window.electron.ipcRenderer.requestEditSpecificResources(
+          jsonObject?.metadata?.namespace ?? 'clusterScoped',
+          jsonObject?.apiVersion!,
+          jsonObject?.kind!,
+          jsonObject?.metadata?.name!,
+          JSON.stringify(jsonObject)
+        );
       }
-    };
-    fileReader.onerror = () => {
-      if (onUploadError) {
-        onUploadError(`File upload failed. ${fileReader.error}`);
-      }
-    };
-    fileReader.readAsText(file);
-  };
-
-  const handleDownload = () => {
-    if (value) {
-      const element = document.createElement('a');
-      const file = new Blob([value], {
-        type: fileTypeInfo[mode].downloadType,
-      });
-      element.href = URL.createObjectURL(file);
-      element.download = `${propId}.yml`;
-      document.body.appendChild(element); // Required for this to work in FireFox
-      element.click();
     }
   };
 
@@ -162,27 +137,7 @@ const CodeEditorInput = ({
           })}
           <SpacingBox side="bottom">{subtitle}</SpacingBox>
           <Flex gutterSize="m" align="center">
-            <input
-              className={hidden}
-              accept={fileTypeInfo[mode].uploadTypes}
-              ref={fileInput}
-              onChange={handleFileUpload}
-              type="file"
-            />
-            <PrimaryButton
-              onClick={handleApplyClick}
-            >
-              Apply
-            </PrimaryButton>
-            {allowDownload && (
-              <SecondaryButton
-                iconStart={SystemIcons.Download}
-                onClick={handleDownload}
-                disabled={!value}
-              >
-                Download File
-              </SecondaryButton>
-            )}
+            <PrimaryButton onClick={handleApplyClick}>Apply</PrimaryButton>
           </Flex>
           <SpacingBox side="bottom" data-cy={textareaDataCy}>
             {getHintContent}
@@ -190,10 +145,10 @@ const CodeEditorInput = ({
           </SpacingBox>
           <AceEditor
             {...aceProps}
-            value={value}
+            value={yamlValue}
             mode={mode}
             name={aceProps.name ?? id}
-            onChange={onChange}
+            onChange={(value) => setYamlValue(value)}
           />
         </div>
       )}

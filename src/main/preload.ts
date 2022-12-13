@@ -19,10 +19,35 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.send('requestSpecificResources', apiVersion, resourceName);
     },
     receiveSpecificResources(func: (data: KubernetesObject[]) => void) {
-      const subscription = (_event: IpcRendererEvent, data: KubernetesObject[]) =>
-        func(data);
+      const subscription = (
+        _event: IpcRendererEvent,
+        data: KubernetesObject[]
+      ) => func(data);
       ipcRenderer.on('receiveSpecificResources', subscription);
     },
+
+    requestEditSpecificResources(
+      namespace: string,
+      apiVersion: string,
+      resourceName: string,
+      specificName: string,
+      updatedObject: string
+    ) {
+      ipcRenderer.send(
+        'requestEditSpecificResources',
+        namespace,
+        apiVersion,
+        resourceName,
+        specificName,
+        updatedObject
+      );
+    },
+    receiveEditSpecificResources(func: (data: string) => void) {
+      const subscription = (_event: IpcRendererEvent, data: string) =>
+        func(data);
+      ipcRenderer.on('receiveEditSpecificResources', subscription);
+    },
+
     requestDeployments() {
       ipcRenderer.send('requestDeployments');
     },
