@@ -50,6 +50,12 @@ const getExistingDeployments = async (
     const items = (
       await client.get(url)
     ).data?.items;
+
+    // @ts-ignore
+    items.forEach(item => {
+        item.apiVersion = apiVersion;
+        item.kind = resourceName;
+    });
     console.log(items);
     return items;
   } catch (e) {

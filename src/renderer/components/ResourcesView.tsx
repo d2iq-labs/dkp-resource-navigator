@@ -52,11 +52,11 @@ export const ResourcesView = () => {
     }
     if (editK8sObject) {
       console.log("editK8sObject")
-      // editK8sObject
-      editK8sObject.apiVersion
-      let k8sObjectYaml: string = yaml.dump(editK8sObject, {}
-      );
+      delete editK8sObject.metadata?.managedFields;
+      // TODO: add groupVersion and kind
+      let k8sObjectYaml: string = yaml.dump(editK8sObject, {'schema': yaml.JSON_SCHEMA});
       return <CodeEditorInput
+                uploadButtonContent={true}
                 value={k8sObjectYaml}
             />;
     } else return <ResourcesTable resources={resources} />;

@@ -103,12 +103,11 @@ const CodeEditorInput = ({
 
   const fileInput = React.useRef<HTMLInputElement>(null);
 
-  const handleUploadClick = () => {
-    if (fileInput?.current) {
-      // Reset value so that the onChange event is triggered for the same file being added twice in a row
-      fileInput.current.value = '';
-      fileInput.current.click();
-    }
+  const handleApplyClick = () => {
+    console.log("apply click");
+    console.log(value);
+    // TODO: convert value string to K8sObject and patch
+
   };
 
   const handleFileUpload = (fileEvent: React.FormEvent<HTMLInputElement>) => {
@@ -170,6 +169,11 @@ const CodeEditorInput = ({
               onChange={handleFileUpload}
               type="file"
             />
+            <PrimaryButton
+              onClick={handleApplyClick}
+            >
+              Apply
+            </PrimaryButton>
             {allowDownload && (
               <SecondaryButton
                 iconStart={SystemIcons.Download}
